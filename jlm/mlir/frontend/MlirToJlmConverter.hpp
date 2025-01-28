@@ -143,6 +143,14 @@ private:
       const ::llvm::SmallVector<rvsdg::output *> & inputs);
 
   /**
+   * Converts a floating point compare predicate to jlm::llvm::fpcmp.
+   * \param op the predicate.
+   * \result The corresponding fpcmp.
+   */
+  jlm::llvm::fpcmp
+  ConvertFPCMP(const ::mlir::arith::CmpFPredicate & op);
+
+  /**
    * Converts an MLIR integer binary operation into an RVSDG node.
    * \param mlirOperation The MLIR operation to be converted.
    * \param inputs The inputs for the RVSDG node.

@@ -127,6 +127,23 @@ private:
   ConvertFpBinaryNode(const jlm::llvm::fpbin_op & op, ::llvm::SmallVector<::mlir::Value> inputs);
 
   /**
+   * Converts an fpcmp an mlir::arith::CmpFPredicate.
+   * \param size The fpcmp to be converted.
+   * \result The corresponding CmpFPredicate.
+   */
+  ::mlir::arith::CmpFPredicate
+  ConvertFPCMP(const llvm::fpcmp & op);
+
+  /**
+   * Converts an fpcmp_op to an MLIR operation.
+   * \param op The fpcmp_op to be converted.
+   * \param inputs The inputs to the fpcmp_op.
+   * \return The converted MLIR operation.
+   */
+  ::mlir::Operation *
+  ConvertFpCompareNode(const jlm::llvm::fpcmp_op & op, ::llvm::SmallVector<::mlir::Value> inputs);
+
+  /**
    * Converts an RVSDG binary_op to an MLIR RVSDG operation.
    * \param bitOp The RVSDG bitbinary_op to be converted
    * \param inputs The inputs to the bitbinary_op.

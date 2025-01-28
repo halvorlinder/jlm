@@ -206,6 +206,48 @@ MlirToJlmConverter::ConvertFPBinaryNode(
   return rvsdg::output::GetNode(*output);
 }
 
+llvm::fpcmp
+MlirToJlmConverter::ConvertFPCMP(const ::mlir::arith::CmpFPredicate & op)
+{
+  switch (op)
+  {
+  case ::mlir::arith::CmpFPredicate::AlwaysTrue:
+    return (llvm::fpcmp::TRUE);
+  case ::mlir::arith::CmpFPredicate::AlwaysFalse:
+    return (llvm::fpcmp::FALSE);
+  case ::mlir::arith::CmpFPredicate::OEQ:
+    return (llvm::fpcmp::oeq);
+  case ::mlir::arith::CmpFPredicate::OGT:
+    return (llvm::fpcmp::ogt);
+  case ::mlir::arith::CmpFPredicate::OGE:
+    return (llvm::fpcmp::oge);
+  case ::mlir::arith::CmpFPredicate::OLT:
+    return (llvm::fpcmp::olt);
+  case ::mlir::arith::CmpFPredicate::OLE:
+    return (llvm::fpcmp::ole);
+  case ::mlir::arith::CmpFPredicate::ONE:
+    return (llvm::fpcmp::one);
+  case ::mlir::arith::CmpFPredicate::ORD:
+    return (llvm::fpcmp::ord);
+  case ::mlir::arith::CmpFPredicate::UEQ:
+    return (llvm::fpcmp::ueq);
+  case ::mlir::arith::CmpFPredicate::UGT:
+    return (llvm::fpcmp::ugt);
+  case ::mlir::arith::CmpFPredicate::UGE:
+    return (llvm::fpcmp::uge);
+  case ::mlir::arith::CmpFPredicate::ULT:
+    return (llvm::fpcmp::ult);
+  case ::mlir::arith::CmpFPredicate::ULE:
+    return (llvm::fpcmp::ule);
+  case ::mlir::arith::CmpFPredicate::UNE:
+    return (llvm::fpcmp::une);
+  case ::mlir::arith::CmpFPredicate::UNO:
+    return (llvm::fpcmp::uno);
+  default:
+    JLM_UNREACHABLE("Unknown fp comp");
+  }
+}
+
 rvsdg::node *
 MlirToJlmConverter::ConvertBitBinaryNode(
     const ::mlir::Operation & mlirOperation,
@@ -414,6 +456,15 @@ MlirToJlmConverter::ConvertOperation(
     auto integerType = ::mlir::cast<::mlir::IntegerType>(type);
 
     return ConvertCmpIOp(ComOp, inputs, integerType.getWidth());
+  }
+
+  else if (auto ComOp = ::mlir::dyn_cast<::mlir::arith::CmpFOp>(&mlirOperation))
+  {
+    auto type = ComOp.getOperandTypes()[0];
+    auto floatType = ::mlir::cast<::mlir::FloatType>(type);
+    auto op =
+        llvm::fpcmp_op(ConvertFPCMP(ComOp.getPredicate()), ConvertFPSize(floatType.getWidth()));
+    return rvsdg::simple_node::create(&rvsdgRegion, op, std::vector(inputs.begin(), inputs.end()));
   }
 
   else if (auto UndefOp = ::mlir::dyn_cast<::mlir::jlm::Undef>(&mlirOperation))
