@@ -866,6 +866,20 @@ MlirToJlmConverter::ConvertType(::mlir::Type & type)
   {
     return std::make_unique<llvm::PointerType>();
   }
+  else if (auto fType = ::mlir::dyn_cast<::mlir::FunctionType>(type))
+  {
+    std::vector<std::shared_ptr<const rvsdg::Type>> argumentTypes;
+    for (auto argType : fType.getInputs())
+    {
+      argumentTypes.push_back(ConvertType(argType));
+    }
+    std::vector<std::shared_ptr<const rvsdg::Type>> resultTypes;
+    for (auto resType : fType.getResults())
+    {
+      resultTypes.push_back(ConvertType(resType));
+    }
+    return std::make_unique<llvm::FunctionType>(argumentTypes, resultTypes);
+  }
   else if (auto arrayType = ::mlir::dyn_cast<::mlir::LLVM::LLVMArrayType>(type))
   {
     auto mlirElementType = arrayType.getElementType();

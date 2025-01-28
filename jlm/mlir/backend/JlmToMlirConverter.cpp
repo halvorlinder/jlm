@@ -823,6 +823,20 @@ JlmToMlirConverter::ConvertType(const rvsdg::Type & type)
   {
     return Builder_->getType<::mlir::jlm::VarargListType>();
   }
+  else if (auto fType = dynamic_cast<const llvm::FunctionType *>(&type))
+  {
+    ::llvm::SmallVector<::mlir::Type> argumentTypes;
+    for (size_t i = 0; i < fType->NumArguments(); i++)
+    {
+      argumentTypes.push_back(ConvertType(fType->ArgumentType(i)));
+    }
+    ::llvm::SmallVector<::mlir::Type> resultTypes;
+    for (size_t i = 0; i < fType->NumResults(); i++)
+    {
+      resultTypes.push_back(ConvertType(fType->ResultType(i)));
+    }
+    return Builder_->getType<::mlir::FunctionType>(argumentTypes, resultTypes);
+  }
   else
   {
     auto message = util::strfmt("Type conversion not implemented: ", type.debug_string());
