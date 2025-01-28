@@ -71,15 +71,6 @@ public:
   ::mlir::rvsdg::OmegaNode
   ConvertModule(const llvm::RvsdgModule & rvsdgModule);
 
-private:
-  /**
-   * Converts an omega and all nodes in its (sub)region(s) to an MLIR RVSDG OmegaNode.
-   * \param graph The root RVSDG graph.
-   * \return An MLIR RVSDG OmegaNode.
-   */
-  ::mlir::rvsdg::OmegaNode
-  ConvertOmega(const rvsdg::graph & graph);
-
   /**
    * Converts all nodes in an RVSDG region. Conversion of structural nodes cause their regions to
    * also be converted.
