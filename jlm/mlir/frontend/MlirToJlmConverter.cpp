@@ -678,7 +678,10 @@ MlirToJlmConverter::ConvertOperation(
         mlirDeltaNode.getSection().str(),
         mlirDeltaNode.getConstant());
 
-    ConvertRegion(mlirDeltaNode.getRegion(), *rvsdgDeltaNode->subregion());
+    auto outputVector = ConvertRegion(mlirDeltaNode.getRegion(), *rvsdgDeltaNode->subregion());
+    JLM_ASSERT(outputVector.size() == 1);
+
+    rvsdgDeltaNode->finalize(outputVector[0]);
 
     return rvsdgDeltaNode;
   }
