@@ -484,6 +484,13 @@ JlmToMlirConverter::ConvertSimpleNode(
         ConvertType(*sitofpOp->result(0)),
         inputs[0]);
   }
+  else if (auto truncOp = dynamic_cast<const jlm::llvm::trunc_op *>(&(node.operation())))
+  {
+    MlirOp = Builder_->create<::mlir::arith::TruncIOp>(
+        Builder_->getUnknownLoc(),
+        ConvertType(*truncOp->result(0)),
+        inputs[0]);
+  }
   // ** region structural nodes **
   else if (auto ctlOp = dynamic_cast<const jlm::rvsdg::ctlconstant_op *>(&node.operation()))
   {
