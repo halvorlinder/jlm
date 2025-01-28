@@ -435,7 +435,6 @@ MlirToJlmConverter::ConvertOperation(
 
   else if (::mlir::isa<::mlir::rvsdg::OmegaNode>(&mlirOperation))
   {
-    ConvertOmega(mlirOperation, rvsdgRegion);
     // Omega doesn't have a corresponding RVSDG node so we return nullptr
     return nullptr;
   }
