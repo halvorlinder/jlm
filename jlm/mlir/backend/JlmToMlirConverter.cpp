@@ -222,6 +222,60 @@ JlmToMlirConverter::ConvertFpBinaryNode(
   }
 }
 
+::mlir::arith::CmpFPredicate
+JlmToMlirConverter::ConvertFPCMP(const llvm::fpcmp & op)
+{
+  switch (op)
+  {
+  case llvm::fpcmp::TRUE:
+    return (::mlir::arith::CmpFPredicate::AlwaysTrue);
+  case llvm::fpcmp::FALSE:
+    return (::mlir::arith::CmpFPredicate::AlwaysFalse);
+  case llvm::fpcmp::oeq:
+    return (::mlir::arith::CmpFPredicate::OEQ);
+  case llvm::fpcmp::ogt:
+    return (::mlir::arith::CmpFPredicate::OGT);
+  case llvm::fpcmp::oge:
+    return (::mlir::arith::CmpFPredicate::OGE);
+  case llvm::fpcmp::olt:
+    return (::mlir::arith::CmpFPredicate::OLT);
+  case llvm::fpcmp::ole:
+    return (::mlir::arith::CmpFPredicate::OLE);
+  case llvm::fpcmp::one:
+    return (::mlir::arith::CmpFPredicate::ONE);
+  case llvm::fpcmp::ord:
+    return (::mlir::arith::CmpFPredicate::ORD);
+  case llvm::fpcmp::ueq:
+    return (::mlir::arith::CmpFPredicate::UEQ);
+  case llvm::fpcmp::ugt:
+    return (::mlir::arith::CmpFPredicate::UGT);
+  case llvm::fpcmp::uge:
+    return (::mlir::arith::CmpFPredicate::UGE);
+  case llvm::fpcmp::ult:
+    return (::mlir::arith::CmpFPredicate::ULT);
+  case llvm::fpcmp::ule:
+    return (::mlir::arith::CmpFPredicate::ULE);
+  case llvm::fpcmp::une:
+    return (::mlir::arith::CmpFPredicate::UNE);
+  case llvm::fpcmp::uno:
+    return (::mlir::arith::CmpFPredicate::UNO);
+  default:
+    JLM_UNREACHABLE("Unknown fp comp");
+  }
+}
+
+::mlir::Operation *
+JlmToMlirConverter::ConvertFpCompareNode(
+    const llvm::fpcmp_op & op,
+    ::llvm::SmallVector<::mlir::Value> inputs)
+{
+  return Builder_->create<::mlir::arith::CmpFOp>(
+      Builder_->getUnknownLoc(),
+      Builder_->getAttr<::mlir::arith::CmpFPredicateAttr>(ConvertFPCMP(op.cmp())),
+      inputs[0],
+      inputs[1]);
+}
+
 ::mlir::Operation *
 JlmToMlirConverter::ConvertBitBinaryNode(
     const rvsdg::SimpleOperation & bitOp,
@@ -401,10 +455,13 @@ JlmToMlirConverter::ConvertSimpleNode(
         ConvertType(*fpextOp->result(0)),
         inputs[0]);
   }
-
   else if (jlm::rvsdg::is<const rvsdg::bitcompare_op>(operation))
   {
     MlirOp = BitCompareNode(operation, inputs);
+  }
+  else if (auto fpCmpOp = dynamic_cast<const llvm::fpcmp_op *>(&operation))
+  {
+    MlirOp = ConvertFpCompareNode(*fpCmpOp, inputs);
   }
   else if (const auto zextOperation = dynamic_cast<const llvm::ZExtOperation *>(&operation))
   {
