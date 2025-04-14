@@ -8,6 +8,7 @@
 
 // JLM
 #include <jlm/llvm/ir/operators/delta.hpp>
+#include <jlm/llvm/ir/operators/IntegerOperations.hpp>
 #include <jlm/llvm/ir/operators/lambda.hpp>
 #include <jlm/llvm/ir/operators/operators.hpp>
 #include <jlm/llvm/ir/RvsdgModule.hpp>
@@ -71,15 +72,6 @@ public:
   ::mlir::rvsdg::OmegaNode
   ConvertModule(const llvm::RvsdgModule & rvsdgModule);
 
-private:
-  /**
-   * Converts an omega and all nodes in its (sub)region(s) to an MLIR RVSDG OmegaNode.
-   * \param graph The root RVSDG graph.
-   * \return An MLIR RVSDG OmegaNode.
-   */
-  ::mlir::rvsdg::OmegaNode
-  ConvertOmega(const rvsdg::Graph & graph);
-
   /**
    * Converts all nodes in an RVSDG region. Conversion of structural nodes cause their regions to
    * also be converted.
@@ -89,19 +81,19 @@ private:
    * \return A list of outputs of the converted region/block.
    */
   ::llvm::SmallVector<::mlir::Value>
-  ConvertRegion(rvsdg::Region & region, ::mlir::Block & block);
+  ConvertRegion(rvsdg::Region & region, ::mlir::Block & block, bool isRoot = false);
 
   /**
    * Retreive the previously converted MLIR values from the map of operations
    * \param node The RVSDG node to get the inputs for.
-   * \param operationsMap A map of RVSDG nodes to their corresponding MLIR operations.
+   * \param valueMap A map of RVSDG outputs to their corresponding MLIR values.
    * \param block The MLIR block to get argument type inputs from.
    * \return The vector of inputs to the node.
    */
   static ::llvm::SmallVector<::mlir::Value>
   GetConvertedInputs(
       const rvsdg::Node & node,
-      const std::unordered_map<rvsdg::Node *, ::mlir::Operation *> & operationsMap,
+      const std::unordered_map<rvsdg::output *, ::mlir::Value> & valueMap,
       ::mlir::Block & block);
 
   /**
@@ -127,6 +119,23 @@ private:
   ConvertFpBinaryNode(const jlm::llvm::fpbin_op & op, ::llvm::SmallVector<::mlir::Value> inputs);
 
   /**
+   * Converts an fpcmp an mlir::arith::CmpFPredicate.
+   * \param size The fpcmp to be converted.
+   * \result The corresponding CmpFPredicate.
+   */
+  ::mlir::arith::CmpFPredicate
+  ConvertFPCMP(const llvm::fpcmp & op);
+
+  /**
+   * Converts an fpcmp_op to an MLIR operation.
+   * \param op The fpcmp_op to be converted.
+   * \param inputs The inputs to the fpcmp_op.
+   * \return The converted MLIR operation.
+   */
+  ::mlir::Operation *
+  ConvertFpCompareNode(const jlm::llvm::fpcmp_op & op, ::llvm::SmallVector<::mlir::Value> inputs);
+
+  /**
    * Converts an RVSDG binary_op to an MLIR RVSDG operation.
    * \param bitOp The RVSDG bitbinary_op to be converted
    * \param inputs The inputs to the bitbinary_op.
@@ -135,6 +144,17 @@ private:
   ::mlir::Operation *
   ConvertBitBinaryNode(
       const rvsdg::SimpleOperation & bitOp,
+      ::llvm::SmallVector<::mlir::Value> inputs);
+
+  /**
+   * Converts an integer binary operation to an MLIR operation.
+   * \param operation The integer binary operation to be converted
+   * \param inputs The inputs to the operation
+   * \return The converted MLIR operation
+   */
+  ::mlir::Operation *
+  ConvertIntegerBinaryOperation(
+      const jlm::llvm::IntegerBinaryOperation & operation,
       ::llvm::SmallVector<::mlir::Value> inputs);
 
   /**
